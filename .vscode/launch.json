@@ -32,6 +32,25 @@
     {
         "type": "node",
         "request": "launch",
+        "cwd": "${workspaceFolder}/api/authorizer",
+        "name": "authorizer/authorizer",
+        "program": "${workspaceFolder}/node_modules/serverless/bin/serverless",
+        "args": [
+            "invoke",
+            "test",
+            "--profile",
+            "hellointernets",
+            "--stage",
+            "prod",
+            "--function",
+            "authorizer"
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+    },
+    {
+        "type": "node",
+        "request": "launch",
         "cwd": "${workspaceFolder}/api/session",
         "name": "session/get",
         "program": "${workspaceFolder}/node_modules/serverless/bin/serverless",
@@ -70,8 +89,8 @@
     {
         "type": "node",
         "request": "launch",
-        "cwd": "${workspaceFolder}/api/authorizer",
-        "name": "authorizer/authorizer",
+        "cwd": "${workspaceFolder}/api/bookings",
+        "name": "bookings/list",
         "program": "${workspaceFolder}/node_modules/serverless/bin/serverless",
         "args": [
             "invoke",
@@ -81,7 +100,7 @@
             "--stage",
             "prod",
             "--function",
-            "authorizer"
+            "list"
         ],
         "console": "integratedTerminal",
         "internalConsoleOptions": "neverOpen"

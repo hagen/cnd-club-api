@@ -1,7 +1,7 @@
 const { unpackHttp, returnHttp } = require('../../lib/lambda-proxy');
 const { HTTPError } = require('../../models/HTTPError');
 const { SessionCookie } = require('../../models/SessionCookie');
-const { logIn } = require('../../lib/cnd');
+const CNDAPI = require('../../lib/cnd');
 const crypto = require('crypto');
 const moment = require('moment');
 
@@ -37,7 +37,7 @@ async function run(params) {
   let memberId = null;
   let expires = null;
   try {
-    let result = await logIn({ email, password });
+    let result = await CNDAPI.logIn({ email, password });
     cookie = result.cookie;
     memberId = result.memberId;
     expires = result.expires;

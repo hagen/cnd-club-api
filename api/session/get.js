@@ -1,5 +1,5 @@
 const { unpackHttp, returnHttp } = require('../../lib/lambda-proxy');
-const { getAuthHTML } = require('../../lib/cnd');
+const CNDAPI = require('../../lib/cnd');
 const { SessionCookie } = require('../../models/SessionCookie');
 const { HTTPError } = require('../../models/HTTPError');
 
@@ -30,9 +30,10 @@ async function handle(event, context, callback) {
 async function run(params) {
   let { cookie, sessionId, memberId } = params.auth;
   // Attempt to test this...
+  let api = new CNDAPI(cookie);
   try {
-    let url = `https://www.carnextdoor.com.au/manage/cars`;
-    await getAuthHTML(cookie, url);
+    let urlPath = `/manage/cars`;
+    await api.getAuthHTML(urlPath);
   } catch(e) {
     await SessionCookie.delete(sessionId);
     throw new HTTPError(401, {

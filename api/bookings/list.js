@@ -1,6 +1,7 @@
 const { unpackHttp, returnHttp } = require('../../lib/lambda-proxy');
 const { HTTPError } = require('../../models/HTTPError');
-const { getJSON } = require('../../lib/cnd');
+const CNDAPI = require('../../lib/cnd');
+const moment = require('moment');
 const validate = require('validate.js');
 const validationRules = {
   vehicleId: {
@@ -51,6 +52,8 @@ module.exports = {
   handle, run
 };
 
+
+
 async function handle(event, context, callback) {
   try {
     let body = await run(unpackHttp(event))
@@ -60,6 +63,10 @@ async function handle(event, context, callback) {
     return returnHttp(e, callback)
   }
 }
+
+
+
+
 
 /**
  * Main function to run.
@@ -71,11 +78,14 @@ async function run(params) {
   const { vehicle_id } = params.pathParameters;
   const { start, end, type, status } = params.queryStringParameters;
 
-  let reservations = await fetchReservations(cookie, vehicle_id, { start, end, type, status });
-  
+  let api = new CNDAPI(cookie);
+  let reservations = await fetchReservations(api, vehicle_id, { start, end, type, status });  
   // At this point, are we returning everything? Or shall we do some filtering?
   return reservations;
 }
+
+
+
 
 
 /**
@@ -84,26 +94,47 @@ async function run(params) {
  * @param {Number} vehicleId Vehicle ID
  * @param {Object} queryParams Query string params to send (all required)
  */
-async function fetchReservations(cookie, vehicleId, { start, end, type, status }) {  
+async function fetchReservations(api, vehicleId, { start, end, type, status }) {  
   // Vehicle ID must be a number
   // Start and End must match YYYY-MM-DD
   // Type must be in enum
-  let validationResult = validate({ vehicleId, start, end, type, status }, validationRules, { format: 'flat' });
+  let validationResult = runValidation({ vehicleId, start, end, type, status });
   if (validationResult) {
     throw new HTTPError(400, {
       name: 'InvalidParameters',
       title: 'Invalid parameters',
       message: validationResult.join('; ')
-    })
+    });
   }
   let urlPath = `/calendars/show?vehicle_id=${vehicleId}&start=${start}&end=${end}`;
 
   // Always filter by type, as type is always required
-  let items = (await getJSON(cookie, urlPath)).filter(item => item.type === type);
+  let { json } = await api.getJSON(urlPath);
+  let items = json.filter(item => item.type === type);
   
   // filtering by status?
   if (status) {
     items = items.filter(item => item.status === status);
   }
   return items;
+}
+
+
+
+
+/**
+ * Run validate.js rules, and custom rules. Returns first error/set of errors.
+ * @param {Params} param All params to validate
+ */
+function runValidation({ vehicleId, start, end, type, status }) {
+  let validateJsErrors = validate({ vehicleId, start, end, type, status }, validationRules, { format: 'flat' });
+  if (validateJsErrors) {
+    return validateJsErrors;
+  }
+
+  // Custom validation.
+  if (moment(start).isAfter(moment(end))) {
+    return ['Start must be before or equal to end'];
+  }
+  return null;
 }

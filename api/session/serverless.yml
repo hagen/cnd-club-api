@@ -32,10 +32,11 @@ provider:
   role: ${self:custom.file.IAM_DEFAULT_ROLE}
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'ap-southeast-2'}
-  environment:    
+  environment:
     STAGE: ${self:provider.stage}
     REGION: ${self:provider.region}
     DYNAMODB_TABLE_SESSION_COOKIE: ${self:custom.file.DYNAMODB_TABLE_SESSION_COOKIE}
+    HTTP_USER_AGENT: ${self:custom.file.HTTP_USER_AGENT}
 functions:
   create:
     handler: create.handle

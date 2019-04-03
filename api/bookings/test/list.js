@@ -12,7 +12,7 @@ const AWS = require('aws-sdk');
 const DynamoDB = new AWS.DynamoDB({
   region: process.env.REGION || 'ap-southeast-2'
 });
-const api = require('../../../lib/cnd');
+const CNDAPI = require('../../../lib/cnd');
 
 describe(fnName, () => {
   
@@ -65,7 +65,7 @@ describe(fnName, () => {
     });
 
     it(`should set up session`, async () => {
-      let { cookie, memberId, expires } = await api.logIn({ 
+      let { cookie, memberId, expires } = await CNDAPI.logIn({ 
         email: process.env.EMAIL, 
         password: process.env.PASSWORD
       });
@@ -86,12 +86,6 @@ describe(fnName, () => {
       session.should.have.property('cookie');
       session.should.have.property('expires');
     }).timeout(TIMEOUT_MS);
-
-    after(async () => {
-      await DynamoDB.deleteTable({
-        TableName: tableName
-      }).promise();
-    });
   })
 
 
@@ -102,23 +96,187 @@ describe(fnName, () => {
     });
 
     it(`should list reservations for vehicle and date range`, async () => {
-
       let request = {
         auth: {
           ...session
         },
         pathParameters: {
-          vehicle_id: 1970
+          vehicle_id: 1971
         },
         queryStringParameters: {
-          
+          start: '2019-01-01',
+          end: '2019-05-01',
+          type: 'reservation'
         }
       }
       let response = await wrapped.run(request);
+      response.should.be.an.Array;
+      response.length.should.be.above(1);
     }).timeout(TIMEOUT_MS);
   });  
 
-  afterAll(async () => {
+  describe('# get blockouts', () => {
+
+    before(async () => {
+
+    });
+
+    it(`should list blockouts for vehicle and date range`, async () => {
+      let request = {
+        auth: {
+          ...session
+        },
+        pathParameters: {
+          vehicle_id: 1971
+        },
+        queryStringParameters: {
+          start: '2019-01-01',
+          end: '2019-05-01',
+          type: 'schedule'
+        }
+      }
+      let response = await wrapped.run(request);
+      response.should.be.an.Array;
+      response.length.should.be.above(1);
+    }).timeout(TIMEOUT_MS);
+  });  
+
+  describe('# errors', () => {
+
+    it(`should complain that 'vehicle_id' is missing`, async () => {
+      let request = {
+        auth: {
+          ...session
+        },
+        pathParameters: {
+          // vehicle_id: 1971
+        },
+        queryStringParameters: {
+          start: '2019-01-01',
+          end: '2019-05-01',
+          type: 'schedule'
+        }
+      }
+      await wrapped.run(request).should.be.rejectedWith({
+        statusCode: 400,        
+        name: 'InvalidParameters',
+        title: 'Invalid parameters',
+        message: 'Vehicle id must be supplied'
+      });
+    }).timeout(TIMEOUT_MS);
+
+    it(`should complain that 'start' is missing`, async () => {
+      let request = {
+        auth: {
+          ...session
+        },
+        pathParameters: {
+          vehicle_id: 1971
+        },
+        queryStringParameters: {
+          // start: '2019-01-01',
+          end: '2019-05-01',
+          type: 'schedule'
+        }
+      }
+      await wrapped.run(request).should.be.rejectedWith({
+        statusCode: 400,        
+        name: 'InvalidParameters',
+        title: 'Invalid parameters',
+        message: 'Start must be supplied'
+      });
+    }).timeout(TIMEOUT_MS);
+
+    it(`should complain that 'end' is missing`, async () => {
+      let request = {
+        auth: {
+          ...session
+        },
+        pathParameters: {
+          vehicle_id: 1971
+        },
+        queryStringParameters: {
+          start: '2019-01-01',
+          // end: '2019-05-01',
+          type: 'schedule'
+        }
+      }
+      await wrapped.run(request).should.be.rejectedWith({
+        statusCode: 400,        
+        name: 'InvalidParameters',
+        title: 'Invalid parameters',
+        message: 'End must be supplied'
+      });
+    }).timeout(TIMEOUT_MS);
+
+    it(`should complain that 'type' is missing`, async () => {
+      let request = {
+        auth: {
+          ...session
+        },
+        pathParameters: {
+          vehicle_id: 1971
+        },
+        queryStringParameters: {
+          start: '2019-01-01',
+          end: '2019-05-01',
+          // type: 'schedule'
+        }
+      }
+      await wrapped.run(request).should.be.rejectedWith({
+        statusCode: 400,        
+        name: 'InvalidParameters',
+        title: 'Invalid parameters',
+        message: 'Type must be supplied'
+      });
+    }).timeout(TIMEOUT_MS);
+
+    it(`should complain that 'start' and 'end' are missing`, async () => {
+      let request = {
+        auth: {
+          ...session
+        },
+        pathParameters: {
+          vehicle_id: 1971
+        },
+        queryStringParameters: {
+          // start: '2019-01-01',
+          // end: '2019-05-01',
+          type: 'schedule'
+        }
+      }
+      await wrapped.run(request).should.be.rejectedWith({
+        statusCode: 400,        
+        name: 'InvalidParameters',
+        title: 'Invalid parameters',
+        message: 'Start must be supplied; End must be supplied'
+      });
+    }).timeout(TIMEOUT_MS);
+
+    it(`should complain that 'start' must be before or equal to 'end'`, async () => {
+      let request = {
+        auth: {
+          ...session
+        },
+        pathParameters: {
+          vehicle_id: 1971
+        },
+        queryStringParameters: {
+          start: '2019-05-01',
+          end: '2019-01-01',
+          type: 'schedule'
+        }
+      }
+      await wrapped.run(request).should.be.rejectedWith({
+        statusCode: 400,        
+        name: 'InvalidParameters',
+        title: 'Invalid parameters',
+        message: 'Start must be before or equal to end'
+      });
+    }).timeout(TIMEOUT_MS);
+  });  
+
+  after(async () => {
     await DynamoDB.deleteTable({
       TableName: tableName
     }).promise();
