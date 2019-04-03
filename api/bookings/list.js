@@ -1,6 +1,6 @@
-const { unpackHttp, returnHttp } = require('../../lib/LambdaProxy');
+const { unpackHttp, returnHttp } = require('../../lib/lambda-proxy');
 const { HTTPError } = require('../../models/HTTPError');
-const { get } = require('../../lib/cnd-api');
+const { getJSON } = require('../../lib/cnd');
 const validate = require('validate.js');
 const validationRules = {
   vehicleId: {
@@ -71,7 +71,7 @@ async function run(params) {
   const { vehicle_id } = params.pathParameters;
   const { start, end, type, status } = params.queryStringParameters;
 
-  let reservations = await fetchReservations(cookie, { vehicle_id, start, end, type, status });
+  let reservations = await fetchReservations(cookie, vehicle_id, { start, end, type, status });
   
   // At this point, are we returning everything? Or shall we do some filtering?
   return reservations;
@@ -81,9 +81,10 @@ async function run(params) {
 /**
  * Returns all bookings for the car, between the start/end dates
  * @param {Cookie} cookie The Cookie
+ * @param {Number} vehicleId Vehicle ID
  * @param {Object} queryParams Query string params to send (all required)
  */
-async function fetchReservations(cookie, { vehicleId, start, end, type, status }) {  
+async function fetchReservations(cookie, vehicleId, { start, end, type, status }) {  
   // Vehicle ID must be a number
   // Start and End must match YYYY-MM-DD
   // Type must be in enum
@@ -95,10 +96,14 @@ async function fetchReservations(cookie, { vehicleId, start, end, type, status }
       message: validationResult.join('; ')
     })
   }
-  let url = `https://www.carnextdoor.com.au/calendars/show?vehicle_id=${vehicleId}&start=${start}&end=${end}`;
-  let items = await get({
-    cookie,
-    url
-  });
-  return items.filter(item => item.type === type);
+  let urlPath = `/calendars/show?vehicle_id=${vehicleId}&start=${start}&end=${end}`;
+
+  // Always filter by type, as type is always required
+  let items = (await getJSON(cookie, urlPath)).filter(item => item.type === type);
+  
+  // filtering by status?
+  if (status) {
+    items = items.filter(item => item.status === status);
+  }
+  return items;
 }
