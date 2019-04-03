@@ -1,0 +1,58 @@
+service: cnd-club-api-session
+
+plugins:
+  - serverless-plugin-webpack
+  - serverless-mocha-plugin
+  # - serverless-domain-manager
+
+package:
+  individually: true
+
+custom:
+  awsAccountId: ${file(../../env/.env.${self:provider.stage}.yml):AWS_ACCOUNT_ID}
+  stacks:
+    authorizer: cnd-club-api-authorizer-${self:provider.stage}
+    resources: cnd-club-api-resources-${self:provider.stage}
+  file: ${file(../../env/.env.${self:provider.stage}.yml)}
+  # customDomain:
+  #   basePath: 'session'
+  #   certificateName: ${self:custom.file.API_GATEWAY_CERT_NAME}
+  #   domainName: ${self:custom.file.API_GATEWAY_DOMAIN_NAME}
+  #   stage: ${self:provider.stage}
+  webpack:
+    config: '../../webpack.config.js'
+    series: true
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  profile: ${opt:profile, 'hellointernets'}
+  memorySize: 512 # Overwrite the default memory size. Default is 1024
+  timeout: 30 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
+  role: ${self:custom.file.IAM_DEFAULT_ROLE}
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'ap-southeast-2'}
+  environment:    
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    DYNAMODB_TABLE_SESSION_COOKIE: ${self:custom.file.DYNAMODB_TABLE_SESSION_COOKIE}
+functions:
+  create:
+    handler: create.handle
+    events:
+      - http:
+          path: /
+          method: post
+          cors: true
+  get:
+    handler: get.handle
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true
+          authorizer: 
+            arn: ${self:custom.file.AUTHORIZER_ARN}
+            resultTtlInSeconds: 300
+            identitySource: method.request.header.X-Session-Id
+            type: token

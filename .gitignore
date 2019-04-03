@@ -1,0 +1,15 @@
+# package directories
+node_modules
+
+# Serverless directories
+.serverless
+
+# Webpack
+.webpack
+
+# secrets
+/env
+*.pem
+
+# Junk
+bash.exe.*

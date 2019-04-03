@@ -1,0 +1,47 @@
+service: cnd-club-api-authorizer
+
+plugins:
+  - serverless-plugin-webpack
+  - serverless-mocha-plugin
+
+package:
+  individually: true
+
+custom:
+  awsAccountId: ${file(../../env/.env-auth.${self:provider.stage}.yml):AWS_ACCOUNT_ID}
+  stacks:
+    resources: cnd-club-api-resources-${self:provider.stage}
+  # Authorizer doesn't reference all env variables from the env.yml file,
+  # because there are references to CF stack variables that only exist
+  # once this service is deployed.
+  file: ${file(../../env/.env-auth.${self:provider.stage}.yml)}
+  webpack:
+    config: ../../webpack.config.js
+    series: false
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  profile: ${opt:profile, 'hellointernets'}
+  memorySize: 512 # Overwrite the default memory size. Default is 1024
+  timeout: 30 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
+  role: ${self:custom.file.IAM_DEFAULT_ROLE}
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'ap-southeast-2'}
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    DYNAMODB_TABLE_SESSION_COOKIE: ${self:custom.file.DYNAMODB_TABLE_SESSION_COOKIE}
+functions:
+  authorizer:
+    handler: authorizer.handle
+############################################################################
+# Stack Outputs
+############################################################################
+Outputs:
+  AuthorizerFunction:
+    Description: Authorizer function
+    Value:
+      "Ref": authorizer
+    Export:
+      Name: authorizer-${self:provider.stage}

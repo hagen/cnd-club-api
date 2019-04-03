@@ -1,0 +1,51 @@
+{
+  "name": "@cnd-club/api",
+  "version": "1.0.0",
+  "description": "CND Club API",
+  "main": "handler.js",
+  "repository": "https://git-codecommit.ap-southeast-2.amazonaws.com/v1/repos/cnd-club-api",
+  "scripts": {
+    "debug-test-authorizer": "cd api\\authorizer && node --inspect-brk=9229 ..\\..\\node_modules\\serverless\\bin\\serverless invoke test"
+  },
+  "author": "Hagen Dittmer",
+  "license": "ISC",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "cheerio": "^1.0.0-rc.2",
+    "dynamoose": "latest",
+    "http-status-codes": "^1.3.0",
+    "lodash": "^4.17.11",
+    "moment": "^2.23.0",
+    "qs": "^6.7.0",
+    "request": "^2.88.0",
+    "validate.js": "^0.12.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-regenerator": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "chai": "^4.2.0",
+    "commander": "^2.19.0",
+    "delay": "^4.1.0",
+    "dotenv": "^4.0.0",
+    "eslint": "^5.11.0",
+    "mocha": "^5.1.1",
+    "raw-loader": "^0.5.1",
+    "rewire": "^4.0.1",
+    "serverless-custom-packaging-plugin": "^0.1.2",
+    "serverless-domain-manager": "^2.6.8",
+    "serverless-mocha-plugin": "^1.9.1",
+    "serverless-plugin-include-dependencies": "^3.2.1",
+    "serverless-plugin-webpack": "^1.5.1",
+    "serverless-step-functions": "^1.9.0",
+    "shortid": "^2.2.14",
+    "should": "^13.2.3",
+    "webpack": "^3.12.0",
+    "webpack-node-externals": "^1.7.2"
+  }
+}

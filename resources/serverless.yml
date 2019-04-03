@@ -1,0 +1,99 @@
+service: cnd-club-api-resources
+
+custom:
+  AWS_ACCOUNT_ID: ${file(../env/.env.${self:provider.stage}.yml):AWS_ACCOUNT_ID}
+  AWS_PROFILE: ${file(../env/.env.${self:provider.stage}.yml):AWS_PROFILE}
+provider:
+  name: aws
+  runtime: nodejs8.10
+  profile: ${opt:profile, 'hellointernets'}
+  memorySize: 512 # Overwrite the default memory size. Default is 1024
+  timeout: 30 # The default is 6 seconds. Note: API Gateway current maximum is 30 seconds
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'ap-southeast-2'}
+resources:
+  Resources:
+    DefaultRole:
+      Type: AWS::IAM::Role
+      Properties:
+        Path: /
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+
+          - PolicyName: CND_API_CloudWatch-${self:provider.stage}
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:logs'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'log-group:/aws/lambda/*:*:*'
+
+          - PolicyName: CND_API_DynamoDB-${self:provider.stage}
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:*
+                  Resource:
+                    - 'Fn::Join':
+                      - ':'
+                      -
+                        - 'arn:aws:dynamodb'
+                        - Ref: 'AWS::Region'
+                        - Ref: 'AWS::AccountId'
+                        - 'table/cnd-club-*'
+
+    ############################################################################
+    # DynamoDB tables
+    ############################################################################
+    DynamoDBSessionCookie:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+  ############################################################################
+  # SNS topics
+  ############################################################################
+          
+  ############################################################################
+  # Stack Outputs
+  ############################################################################
+  Outputs:
+    DefaultRole:
+      Description: Name of the Default IAM Role
+      Value:
+        "Ref": DefaultRole
+      Export:
+        Name: DefaultRole-${self:provider.stage}
+    DynamoDBSessionCookie:
+      Description: Name of the Default IAM Role
+      Value:
+        "Ref": DynamoDBSessionCookie
+      Export:
+        Name: DynamoDBSessionCookie-${self:provider.stage}
