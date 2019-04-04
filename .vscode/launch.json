@@ -89,6 +89,25 @@
     {
         "type": "node",
         "request": "launch",
+        "cwd": "${workspaceFolder}/api/cars",
+        "name": "cars/list",
+        "program": "${workspaceFolder}/node_modules/serverless/bin/serverless",
+        "args": [
+            "invoke",
+            "test",
+            "--profile",
+            "hellointernets",
+            "--stage",
+            "prod",
+            "--function",
+            "list"
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+    },
+    {
+        "type": "node",
+        "request": "launch",
         "cwd": "${workspaceFolder}/api/bookings",
         "name": "bookings/list",
         "program": "${workspaceFolder}/node_modules/serverless/bin/serverless",
@@ -101,6 +120,44 @@
             "prod",
             "--function",
             "list"
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "cwd": "${workspaceFolder}/api/bookings",
+        "name": "bookings/list-updated",
+        "program": "${workspaceFolder}/node_modules/serverless/bin/serverless",
+        "args": [
+            "invoke",
+            "test",
+            "--profile",
+            "hellointernets",
+            "--stage",
+            "prod",
+            "--function",
+            "list-updated"
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "cwd": "${workspaceFolder}/api/bookings",
+        "name": "bookings/list-cancelled",
+        "program": "${workspaceFolder}/node_modules/serverless/bin/serverless",
+        "args": [
+            "invoke",
+            "test",
+            "--profile",
+            "hellointernets",
+            "--stage",
+            "prod",
+            "--function",
+            "list-cancelled"
         ],
         "console": "integratedTerminal",
         "internalConsoleOptions": "neverOpen"

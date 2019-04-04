@@ -3,22 +3,22 @@ service: cnd-club-api-cars
 plugins:
   - serverless-plugin-webpack
   - serverless-mocha-plugin
-  - serverless-domain-manager
+  # - serverless-domain-manager
 
 custom:
   awsAccountId: ${file(../../env/.env.${self:provider.stage}.yml):AWS_ACCOUNT_ID}
   stacks:
-    authorizer: ck-api-authorizer-${self:provider.stage}
-    resources: ck-api-resources-${self:provider.stage}
+    authorizer: cnd-club-api-authorizer-${self:provider.stage}
+    resources: cnd-club-api-resources-${self:provider.stage}
   file: ${file(../../env/.env.${self:provider.stage}.yml)}
+  # customDomain:
+  #   basePath: 'cars'
+  #   certificateName: ${self:custom.file.API_GATEWAY_CERT_NAME}
+  #   domainName: ${self:custom.file.API_GATEWAY_DOMAIN_NAME}
+  #   stage: ${self:provider.stage}
   webpack:
-    config: ../../webpack.config.js
-    series: false
-  customDomain:
-    basePath: 'cars'
-    certificateName: ${self:custom.file.API_GATEWAY_CERT_NAME}
-    domainName: ${self:custom.file.API_GATEWAY_DOMAIN_NAME}
-    stage: ${self:provider.stage}
+    config: '../../webpack.config.js'
+    series: true
 
 provider:
   name: aws
@@ -30,6 +30,10 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'ap-southeast-2'}
   environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    DYNAMODB_TABLE_SESSION_COOKIE: ${self:custom.file.DYNAMODB_TABLE_SESSION_COOKIE}
+    HTTP_USER_AGENT: ${self:custom.file.HTTP_USER_AGENT}
 
 functions:
   list:
@@ -39,7 +43,12 @@ functions:
           path: /
           method: get
           cors: true
-          authorizer: ${self:custom.file.AUTHORIZER_ARN}
+          authorizer: 
+            arn: ${self:custom.file.AUTHORIZER_ARN}
+            resultTtlInSeconds: 300
+            identitySource: method.request.header.X-Session-Id
+            type: token
+            
 resources:
   Resources:
     GatewayResponseUnauthorised:

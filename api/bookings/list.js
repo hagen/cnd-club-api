@@ -1,6 +1,7 @@
 const { unpackHttp, returnHttp } = require('../../lib/lambda-proxy');
 const { HTTPError } = require('../../models/HTTPError');
 const CNDAPI = require('../../lib/cnd');
+const{ md5 } = require('../../lib/utils');
 const moment = require('moment');
 const validate = require('validate.js');
 const validationRules = {
@@ -79,7 +80,7 @@ async function run(params) {
   const { start, end, type, status } = params.queryStringParameters;
 
   let api = new CNDAPI(cookie);
-  let reservations = await fetchReservations(api, vehicle_id, { start, end, type, status });  
+  let { reservations } = await fetchReservations(api, vehicle_id, { start, end, type, status });  
   // At this point, are we returning everything? Or shall we do some filtering?
   return reservations;
 }
@@ -93,6 +94,7 @@ async function run(params) {
  * @param {Cookie} cookie The Cookie
  * @param {Number} vehicleId Vehicle ID
  * @param {Object} queryParams Query string params to send (all required)
+ * @param {Object} updatesOnly Only send records that have changed
  */
 async function fetchReservations(api, vehicleId, { start, end, type, status }) {  
   // Vehicle ID must be a number
@@ -110,14 +112,27 @@ async function fetchReservations(api, vehicleId, { start, end, type, status }) {
 
   // Always filter by type, as type is always required
   let { json } = await api.getJSON(urlPath);
-  let items = json.filter(item => item.type === type);
+  let reservations = json
+    .filter(item => item.type === type)
+    .map(item => ({
+      ...item,
+      start_end_hash: md5(JSON.stringify({ 
+        end: item.end, start: item.start
+      }))
+    }));
   
   // filtering by status?
   if (status) {
-    items = items.filter(item => item.status === status);
+    reservations = reservations.filter(item => item.status === status);
   }
-  return items;
+
+  // Finally, create a hash against date/time props of the reservation.
+  return { 
+    urlPath,
+    reservations
+  };
 }
+module.exports.fetchReservations = fetchReservations;
 
 
 

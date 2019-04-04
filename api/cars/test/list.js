@@ -1,113 +1,54 @@
-/* global describe, before, it, after */
-const mochaPlugin = require('serverless-mocha-plugin')
-const expect = mochaPlugin.chai.expect
-let wrapped = mochaPlugin.getWrapper('list', '/list.js', 'run')
-const shortid = require('shortid')
-const { Account } = require('../../../models/account')
-const { User } = require('../../../models/user')
-const { UserAccounts } = require('../../../models/user-accounts')
+/* global describe, before, it, after, afterAll */
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../../env/.env.test.prod') });
+const mochaPlugin = require('serverless-mocha-plugin');
+require('should');
+const TIMEOUT_MS = 9999999999;
+const fnName = 'list';
+let wrapped = mochaPlugin.getWrapper(fnName, `/${fnName}.js`, 'run');
+const moment = require('moment');
+const CNDAPI = require('../../../lib/cnd');
 
-describe('list', () => {
-  before((done) => {
-    done()
+describe(fnName, () => {
+  
+  let session;
+
+  describe('# get session', () => {
+
+    it(`should set up session`, async () => {
+      let { cookie, memberId, expires } = await CNDAPI.logIn({ 
+        email: process.env.EMAIL, 
+        password: process.env.PASSWORD
+      });
+
+      // Add session to dynamo
+      session = {
+        email: process.env.EMAIL,
+        memberId: memberId,
+        cookie: cookie,
+        expires: moment(expires).unix()
+      };
+      session.should.have.property('memberId');
+      session.should.have.property('email');
+      session.should.have.property('cookie');
+      session.should.have.property('expires');
+    }).timeout(TIMEOUT_MS);
   })
 
-  it(`list all accounts of user (1 account exists)`, async () => {
-    // Create account (trialling), user, account user link
-    let account = await Account.create({
-      name: 'test1'
-    })
-    let user = await User.create({
-      first_name: 'test',
-      last_name: 'test',
-      email: 'test@email.com',
-      auth0_id: shortid.generate() // Auth0 ID is unique
-    })
-    let ua = await UserAccounts.create({
-      access_level: 'owner',
-      account_id: account.id,
-      user_id: user.id
-    })
-    let request = {
-      auth: {
-        account_id: account.id,
-        user_id: user.id
+
+  describe('# get cars', () => {
+
+    it(`should list member's cars`, async () => {
+      let request = {
+        auth: {
+          ...session
+        },
+        pathParameters: {},
+        queryStringParameters: {}
       }
-    }
-    let response = await wrapped.run(request)
-    expect(response).to.have.property('accounts')
-    expect(response.accounts).to.be.an('array')
-    expect(response.accounts).to.have.length(1)
-    response.accounts.forEach(account => {
-      expect(account).to.not.have.property('user_accounts')
-    })
-    // Destroy
-    await ua.destroy({ force: true })
-    await account.destroy({ force: true })
-    await user.destroy({ force: true })
-  })
-
-  it(`list accounts of user (> 1 account)`, async () => {
-    // Create account (trialling), user, account user link
-    let account = await Account.create({
-      name: 'test1'
-    })
-    let account2 = await Account.create({
-      name: 'test2'
-    })
-    let user = await User.create({
-      first_name: 'test',
-      last_name: 'test',
-      email: 'test@email.com',
-      auth0_id: shortid.generate() // Auth0 ID is unique
-    })
-    let ua = await UserAccounts.create({
-      access_level: 'owner',
-      account_id: account.id,
-      user_id: user.id
-    })
-    let ua2 = await UserAccounts.create({
-      access_level: 'access',
-      account_id: account2.id,
-      user_id: user.id
-    })
-    let request = {
-      auth: {
-        account_id: account.id,
-        user_id: user.id
-      }
-    }
-    let response = await wrapped.run(request)
-    expect(response).to.have.property('accounts')
-    expect(response.accounts).to.be.an('array')
-    expect(response.accounts).to.have.length(2)
-    response.accounts.forEach(account => {
-      expect(account).to.not.have.property('user_accounts')
-    })
-    // Destroy
-    await ua.destroy({ force: true })
-    await ua2.destroy({ force: true })
-    await user.destroy({ force: true })
-    await account.destroy({ force: true })
-    await account2.destroy({ force: true })
-  })
-
-  it(`non-user returns 404`, async () => {
-    let request = {
-      auth: {
-        account_id: 'DEFAULT',
-        user_id: 9999999
-      }
-    }
-    try {
-      await wrapped.run(request)
-    } catch(e) {
-      expect(e).to.have.property('statusCode').equal(404)
-      expect(e).to.have.property('message').to.include('9999999')
-    }
-  })
-
-  after((done) => {
-    done()
-  })
+      let response = await wrapped.run(request);
+      response.should.be.an.Array;
+      response.length.should.be.above(0 );
+    }).timeout(TIMEOUT_MS);
+  });
 })

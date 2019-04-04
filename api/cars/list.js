@@ -1,6 +1,6 @@
-const { unpackHttp, returnHttp } = require('../../lib/LambdaProxy');
+const { unpackHttp, returnHttp } = require('../../lib/lambda-proxy');
 const cheerio = require('cheerio');
-const { getHTML } = require('../../lib/cnd-api');
+const CNDAPI = require('../../lib/cnd');
 
 module.exports = {
   handle, run
@@ -15,6 +15,10 @@ async function handle(event, context, callback) {
     return returnHttp(e, callback)
   }
 }
+
+
+
+
 /**
  * Main function to run.
  * @param  {[type]} params [description]
@@ -23,22 +27,25 @@ async function handle(event, context, callback) {
 async function run(params) {
   const { cookie } = params.auth;
 
-  let html = await fetchCarsHTML(cookie);
-  let cars = extractCars(html);
-  
-  return { cars, total: cars.length };
+  let api = new CNDAPI(cookie);
+  let html = await fetchCarsHTML(api);
+  let cars = extractCars(html);  
+  return cars;
 }
+
 
 
 /**
  * Returns raw HTML from the Manage Cars page on CND.
- * @param {Cookie} cookie The Cookie
+ * @param {CNDAPI} api The CND API
  */
-async function fetchCarsHTML(cookie) {
-  let url = `https://www.carnextdoor.com.au/manage/cars`;
-  let html = await getHTML(cookie, url);
+async function fetchCarsHTML(api) {
+  let urlPath = `/manage/cars`;
+  let { html } = await api.getAuthHTML(urlPath);
   return html;
 }
+
+
 
 
 /**
@@ -52,8 +59,8 @@ function extractCars(html) {
   let headers = $('h4');
   let cars = [];
   headers.each(function() {
-    let anchor = $(this)('a');
-    let span = $(this)('span');
+    let anchor = $(this).find('a');
+    let span = $(this).find('span');
 
     // Props for the car...
     let href = anchor.attr('href');

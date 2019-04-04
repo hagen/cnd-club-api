@@ -73,9 +73,18 @@ resources:
         KeySchema:
           - AttributeName: id
             KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+        BillingMode: PAY_PER_REQUEST
+
+    DynamoDBResponseCache:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
 
   ############################################################################
   # SNS topics
@@ -92,8 +101,14 @@ resources:
       Export:
         Name: DefaultRole-${self:provider.stage}
     DynamoDBSessionCookie:
-      Description: Name of the Default IAM Role
+      Description: DynamoDB table - DynamoDBSessionCookie
       Value:
         "Ref": DynamoDBSessionCookie
       Export:
         Name: DynamoDBSessionCookie-${self:provider.stage}
+    DynamoDBResponseCache:
+      Description: DynamoDB table - DynamoDBResponseCache
+      Value:
+        "Ref": DynamoDBResponseCache
+      Export:
+        Name: DynamoDBResponseCache-${self:provider.stage}

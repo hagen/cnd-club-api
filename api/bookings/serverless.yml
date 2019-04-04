@@ -3,7 +3,7 @@ service: cnd-club-api-bookings
 plugins:
   - serverless-plugin-webpack
   - serverless-mocha-plugin
-  - serverless-domain-manager
+  # - serverless-domain-manager
 
 custom:
   awsAccountId: ${file(../../env/.env.${self:provider.stage}.yml):AWS_ACCOUNT_ID}
@@ -32,6 +32,7 @@ provider:
   environment:
     STAGE: ${self:provider.stage}
     REGION: ${self:provider.region}
+    DYNAMODB_TABLE_RESPONSE_CACHE: ${self:custom.file.DYNAMODB_TABLE_RESPONSE_CACHE}
     DYNAMODB_TABLE_SESSION_COOKIE: ${self:custom.file.DYNAMODB_TABLE_SESSION_COOKIE}
     HTTP_USER_AGENT: ${self:custom.file.HTTP_USER_AGENT}
 
@@ -43,7 +44,45 @@ functions:
           path: /
           method: get
           cors: true
-          authorizer: ${self:custom.file.AUTHORIZER_ARN}
+          authorizer: 
+            arn: ${self:custom.file.AUTHORIZER_ARN}
+            resultTtlInSeconds: 300
+            identitySource: method.request.header.X-Session-Id
+            type: token
+          request:
+            parameters:
+              paths:
+                vehicle_id: true
+
+  list-updated:
+    handler: list-updated.handle
+    events:
+      - http:
+          path: /updated
+          method: get
+          cors: true
+          authorizer: 
+            arn: ${self:custom.file.AUTHORIZER_ARN}
+            resultTtlInSeconds: 300
+            identitySource: method.request.header.X-Session-Id
+            type: token
+          request:
+            parameters:
+              paths:
+                vehicle_id: true
+                
+  list-cancelled:
+    handler: list-cancelled.handle
+    events:
+      - http:
+          path: /cancelled
+          method: get
+          cors: true
+          authorizer: 
+            arn: ${self:custom.file.AUTHORIZER_ARN}
+            resultTtlInSeconds: 300
+            identitySource: method.request.header.X-Session-Id
+            type: token
           request:
             parameters:
               paths:
