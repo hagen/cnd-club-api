@@ -55,7 +55,8 @@ async function run(sessionId) {
     context: {
       sessionId: session.id,
       memberId: session.memberId.toString(),
-      cookie: session.cookie
+      cookie: session.cookie,
+      email: session.email
     },
     policyDocument: {
       Version: '2012-10-17',

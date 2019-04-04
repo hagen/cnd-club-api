@@ -28,7 +28,7 @@ async function handle(event, context, callback) {
  * @param {Object} params Lambda proxy params
  */
 async function run(params) {
-  let { cookie, sessionId, memberId } = params.auth;
+  let { cookie, sessionId, memberId, email } = params.auth;
   // Attempt to test this...
   let api = new CNDAPI(cookie);
   try {
@@ -44,6 +44,7 @@ async function run(params) {
   }
   return { 
     id: sessionId,
-    memberId
+    memberId,
+    email
   };
 }
