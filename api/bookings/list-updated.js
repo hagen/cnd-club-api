@@ -32,11 +32,10 @@ async function handle(event, context, callback) {
  */
 async function run(params) {
   const { cookie } = params.auth;
-  const { vehicle_id } = params.pathParameters;
-  const { start, end, type, status } = params.queryStringParameters;
+  const { vehicle_id, start, end, type, status } = params.queryStringParameters;
 
   let api = new CNDAPI(cookie);
-	let { reservations, urlPath } = await fetchReservations(api, vehicle_id, { start, end, type, status });  
+	let { reservations, urlPath } = await fetchReservations(api, { vehicle_id, start, end, type, status });  
 	
 	// Filter only records that have been updated. For this, we need the urlPath,
 	// as that's our key into Dynamo.

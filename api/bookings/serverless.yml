@@ -49,10 +49,6 @@ functions:
             resultTtlInSeconds: 300
             identitySource: method.request.header.X-Session-Id
             type: token
-          request:
-            parameters:
-              paths:
-                vehicle_id: true
 
   list-updated:
     handler: list-updated.handle
@@ -66,10 +62,6 @@ functions:
             resultTtlInSeconds: 300
             identitySource: method.request.header.X-Session-Id
             type: token
-          request:
-            parameters:
-              paths:
-                vehicle_id: true
                 
   list-cancelled:
     handler: list-cancelled.handle
@@ -83,10 +75,6 @@ functions:
             resultTtlInSeconds: 300
             identitySource: method.request.header.X-Session-Id
             type: token
-          request:
-            parameters:
-              paths:
-                vehicle_id: true
             
 resources:
   Resources:

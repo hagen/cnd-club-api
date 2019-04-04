@@ -53,7 +53,8 @@ describe(fnName, () => {
 
     it(`should save initial fetch list to cache`, async () => {   
       // Fetch reservations and save them to response cache.
-      let { reservations, urlPath } = await fetchReservations(api, parseInt(process.env.VEHICLE_ID, 10), {
+      let { reservations, urlPath } = await fetchReservations(api, {
+        vehicle_id,
         start,
         end,
         type: 'reservation'
@@ -80,9 +81,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           start,
           end,
           type: 'reservation'
@@ -111,9 +112,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           start,
           end,
           type: 'reservation'

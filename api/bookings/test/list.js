@@ -48,9 +48,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           start,
           end,
           type: 'reservation'
@@ -70,9 +70,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           start,
           end,
           type: 'schedule'
@@ -92,9 +92,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          // vehicle_id: process.env.VEHICLE_ID
         },
         queryStringParameters: {
+          // vehicle_id,
           start,
           end,
           type: 'schedule'
@@ -114,9 +114,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           // start,
           end,
           type: 'schedule'
@@ -136,9 +136,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           start,
           // end,
           type: 'schedule'
@@ -158,9 +158,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           start,
           end,
           // type: 'schedule'
@@ -180,9 +180,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           // start,
           // end,
           type: 'schedule'
@@ -202,9 +202,9 @@ describe(fnName, () => {
           ...session
         },
         pathParameters: {
-          vehicle_id
         },
         queryStringParameters: {
+          vehicle_id,
           start: end,
           end: start,
           type: 'schedule'
