@@ -47,7 +47,7 @@ describe(fnName, () => {
   describe('# get updated bookings', () => {
 
     const { fetchReservations } = require('../list');
-    const { arrayToKeyedObject, md5 } = require('../../../lib/utils');
+    const { arrayToKeyedObject, sha256 } = require('../../../lib/utils');
     const { ResponseCache } = require('../../../models/ResponseCache');   
     let cache;
 
@@ -59,11 +59,12 @@ describe(fnName, () => {
         end,
         type: 'reservation'
       });
-      let cacheId = md5(`updated:${urlPath}`);
+      let cacheId = sha256(`updated:${urlPath}`);
 
       // Transform to keyed and save to ResponseCache
       cache = new ResponseCache({
         id: cacheId,
+        urlPath,
         response: arrayToKeyedObject(reservations, 'id'),
         createdAt: moment().unix()
       });

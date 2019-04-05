@@ -2,6 +2,7 @@ const { unpackHttp, returnHttp } = require('../../lib/lambda-proxy');
 const { HTTPError } = require('../../models/HTTPError');
 const { SessionCookie } = require('../../models/SessionCookie');
 const CNDAPI = require('../../lib/cnd');
+const { randomHash } = require('../../lib/utils');
 const crypto = require('crypto');
 const moment = require('moment');
 
@@ -51,7 +52,7 @@ async function run(params) {
 
   // Save the cookie to DynamoDB.  
   let session = new SessionCookie({
-    id: crypto.randomBytes(48).toString('hex'),
+    id: randomHash(),
     cookie,
     expires: moment(expires).unix(),
     email,

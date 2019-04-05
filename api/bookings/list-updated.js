@@ -3,7 +3,7 @@ const moment = require('moment');
 const CNDAPI = require('../../lib/cnd');
 const { ResponseCache } = require('../../models/ResponseCache');
 const { fetchReservations } = require('./list')
-const { arrayToKeyedObject, md5 } = require('../../lib/utils');
+const { arrayToKeyedObject, sha256 } = require('../../lib/utils');
 
 module.exports = {
   handle, run
@@ -39,7 +39,7 @@ async function run(params) {
 	
 	// Filter only records that have been updated. For this, we need the urlPath,
 	// as that's our key into Dynamo.
-	let cacheId = md5(`updated:${urlPath}`);
+	let cacheId = sha256(`updated:${urlPath}`);
 	let cachedResponse = await ResponseCache.get(cacheId);
 	let cache = cachedResponse ? cachedResponse.response : {};
 
@@ -68,6 +68,7 @@ async function run(params) {
 		} else {
 			cache = new ResponseCache({
 				id: cacheId,
+				urlPath,
 				response: keyedReservations,
 				createdAt: moment().unix()
 			});
