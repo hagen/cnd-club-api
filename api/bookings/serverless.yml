@@ -47,7 +47,7 @@ functions:
           authorizer: 
             arn: ${self:custom.file.AUTHORIZER_ARN}
             resultTtlInSeconds: 300
-            identitySource: method.request.header.X-Session-Id
+            identitySource: method.request.header.x-cnd-token
             type: token
 
   list-updated:
@@ -60,7 +60,7 @@ functions:
           authorizer: 
             arn: ${self:custom.file.AUTHORIZER_ARN}
             resultTtlInSeconds: 300
-            identitySource: method.request.header.X-Session-Id
+            identitySource: method.request.header.x-cnd-token
             type: token
                 
   list-cancelled:
@@ -73,7 +73,7 @@ functions:
           authorizer: 
             arn: ${self:custom.file.AUTHORIZER_ARN}
             resultTtlInSeconds: 300
-            identitySource: method.request.header.X-Session-Id
+            identitySource: method.request.header.x-cnd-token
             type: token
             
 resources:
