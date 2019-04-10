@@ -40,12 +40,6 @@ const validationRules = {
       within: ['reservation', 'schedule'],
       message: `^%{value} is an invalid type.`
     }
-  },
-  status: {
-    inclusion: {
-      within: ['completed', 'schedule', 'confirmed'],
-      message: `^%{value} is an invalid status.`
-    }
   }
 };
 
@@ -75,12 +69,11 @@ async function handle(event, context, callback) {
  * @return {[type]}        [description]
  */
 async function run(params) {
-  const { cookie } = params.auth;
-  const { vehicle_id, start, end, type, status } = params.queryStringParameters;
+  const { cndToken } = params.auth;
+  const { vehicle_id, start, end, type } = params.queryStringParameters;
 
-  let api = new CNDAPI(cookie);
-  let { reservations } = await fetchReservations(api, { vehicle_id, start, end, type, status });  
-  // At this point, are we returning everything? Or shall we do some filtering?
+  let api = new CNDAPI(cndToken);
+  let { reservations } = await fetchReservations(api, { vehicle_id, start, end, type });  
   return reservations;
 }
 
@@ -93,11 +86,11 @@ async function run(params) {
  * @param {CNDAPI} api The CND API
  * @param {Object} queryParams Query string params to send (all required)
  */
-async function fetchReservations(api, { vehicle_id, start, end, type, status }) {  
+async function fetchReservations(api, { vehicle_id, start, end, type }) {  
   // Vehicle ID must be a number
   // Start and End must match YYYY-MM-DD
   // Type must be in enum
-  let validationResult = runValidation({ vehicle_id, start, end, type, status });
+  let validationResult = runValidation({ vehicle_id, start, end, type });
   if (validationResult) {
     throw new HTTPError(400, {
       name: 'InvalidParameters',
@@ -105,25 +98,21 @@ async function fetchReservations(api, { vehicle_id, start, end, type, status }) 
       message: validationResult.join('; ')
     });
   }
-  let urlPath = `/calendars/show?vehicle_id=${vehicle_id}&start=${start}&end=${end}`;
+  let urlPath = `/vehicles/${vehicle_id}/calendar_events?vlocal_start_at=${start}&vlocal_end_at=${end}`;
 
   // Always filter by type, as type is always required
-  let { json } = await api.getJSON(urlPath);
-  let reservations = json
+  let { calendar_events } = await api.get(urlPath);
+  let reservations = calendar_events
     .filter(item => item.type === type)
+    // Finally, create a hash against date/time props of the reservation.
     .map(item => ({
+      id: item.reservation ? item.reservation.id : item.schedule.id,
       ...item,
       start_end_hash: md5(JSON.stringify({ 
-        end: item.end, start: item.start
+        end_at: item.end_at, start_at: item.start_at
       }))
     }));
   
-  // filtering by status?
-  if (status) {
-    reservations = reservations.filter(item => item.status === status);
-  }
-
-  // Finally, create a hash against date/time props of the reservation.
   return { 
     urlPath,
     reservations

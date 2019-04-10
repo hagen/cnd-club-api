@@ -1,5 +1,3 @@
-const moment = require('moment');
-const { SessionCookie } = require('../../models/SessionCookie');
 const UNAUTHORIZED = 'Unauthorized';
 const arn = '*'; //event.methodArn
 const { isEmptyPrimitive } = require('../../lib/utils');
@@ -17,9 +15,8 @@ module.exports = { handle };
  * @return {Promise}           [description]
  */
 async function handle(event, context, callback) {
-	// context.callbackWaitsForEmptyEventLoop = false
   // Context declaration
-  const token = isEmptyPrimitive(event.authorizationToken) ? '--missing--' : event.authorizationToken;
+  const token = isEmptyPrimitive(event.authorizationToken) ? null : event.authorizationToken;
   let result = null;
   try {
     result = await run(token);
@@ -35,28 +32,18 @@ async function handle(event, context, callback) {
 /**
  * handles Bearer token authnetication. Namely by validating the JWT.
  */
-async function run(sessionId) {
+async function run(token) {
 
   // If we have a session already, they're good to go.
-  let session = await SessionCookie.get(sessionId);
-  if (!session) {
-    throw new Error(UNAUTHORIZED);
-  }
-
-  // Or if their cookie expired, where the expires datetime
-  // is now before the current datetime;
-  if (moment.unix(session.expires).isBefore(moment())) {
+  if (!token) {
     throw new Error(UNAUTHORIZED);
   }
   
   // Return the context
   const authResponse = {
-    principalId: session.memberId.toString(),
+    principalId: token,
     context: {
-      sessionId: session.id,
-      memberId: session.memberId.toString(),
-      cookie: session.cookie,
-      email: session.email
+      cndToken: token
     },
     policyDocument: {
       Version: '2012-10-17',

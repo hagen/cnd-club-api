@@ -64,17 +64,6 @@ resources:
     ############################################################################
     # DynamoDB tables
     ############################################################################
-    DynamoDBSessionCookie:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-
     DynamoDBResponseCache:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -100,12 +89,6 @@ resources:
         "Ref": DefaultRole
       Export:
         Name: DefaultRole-${self:provider.stage}
-    DynamoDBSessionCookie:
-      Description: DynamoDB table - DynamoDBSessionCookie
-      Value:
-        "Ref": DynamoDBSessionCookie
-      Export:
-        Name: DynamoDBSessionCookie-${self:provider.stage}
     DynamoDBResponseCache:
       Description: DynamoDB table - DynamoDBResponseCache
       Value:

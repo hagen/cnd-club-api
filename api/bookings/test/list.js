@@ -1,41 +1,30 @@
-/* global describe, before, it */
+/* global describe, it */
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../../env/.env.test.prod') });
 const mochaPlugin = require('serverless-mocha-plugin');
-require('should');
+const should = require('should');
 const TIMEOUT_MS = 9999999999;
 const fnName = 'list';
 let wrapped = mochaPlugin.getWrapper(fnName, `/${fnName}.js`, 'run');
-const moment = require('moment');
 const CNDAPI = require('../../../lib/cnd');
 
 describe(fnName, () => {
   
-  let session;
   let start = '2019-04-01';
   let end = '2019-04-07';
   let vehicle_id = parseInt(process.env.VEHICLE_ID, 10);
+  let cndToken;
 
   describe('# get session', () => {
 
     it(`should set up session`, async () => {
-      let { cookie, memberId, expires } = await CNDAPI.logIn({ 
+      cndToken = await CNDAPI.login({ 
         email: process.env.EMAIL, 
         password: process.env.PASSWORD
       });
 
-      // Add session to dynamo
-      session = {
-        email: process.env.EMAIL,
-        memberId: memberId,
-        cookie: cookie,
-        expires: moment(expires).unix()
-      };
-
-      session.should.have.property('memberId');
-      session.should.have.property('email');
-      session.should.have.property('cookie');
-      session.should.have.property('expires');
+      cndToken.should.be.a.String;
+      should(cndToken).not.be.null;
     }).timeout(TIMEOUT_MS);
   })
 
@@ -45,7 +34,7 @@ describe(fnName, () => {
     it(`should list reservations for vehicle and date range`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
@@ -67,7 +56,7 @@ describe(fnName, () => {
     it(`should list blockouts for vehicle and date range`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
@@ -89,7 +78,7 @@ describe(fnName, () => {
     it(`should complain that 'vehicle_id' is missing`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
@@ -111,7 +100,7 @@ describe(fnName, () => {
     it(`should complain that 'start' is missing`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
@@ -133,7 +122,7 @@ describe(fnName, () => {
     it(`should complain that 'end' is missing`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
@@ -155,7 +144,7 @@ describe(fnName, () => {
     it(`should complain that 'type' is missing`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
@@ -177,7 +166,7 @@ describe(fnName, () => {
     it(`should complain that 'start' and 'end' are missing`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
@@ -199,7 +188,7 @@ describe(fnName, () => {
     it(`should complain that 'start' must be before or equal to 'end'`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },

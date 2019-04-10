@@ -2,7 +2,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../../env/.env.test.prod') });
 const mochaPlugin = require('serverless-mocha-plugin');
-require('should');
+const should = require('should');
 const TIMEOUT_MS = 9999999999;
 const fnName = 'list-cancelled';
 let wrapped = mochaPlugin.getWrapper(fnName, `/${fnName}.js`, 'run');
@@ -14,30 +14,21 @@ describe(fnName, () => {
   let start = '2019-04-01';
   let end = '2019-04-07';
   let vehicle_id = parseInt(process.env.VEHICLE_ID, 10);
-  let session;
+  let cndToken;
   let api;
 
   describe('# get session', () => {
 
     it(`should set up session`, async () => {
-      let { cookie, memberId, expires } = await CNDAPI.logIn({ 
+      cndToken = await CNDAPI.login({ 
         email: process.env.EMAIL, 
         password: process.env.PASSWORD
       });
 
-      // Add session to dynamo
-      session = {
-        email: process.env.EMAIL,
-        memberId: memberId,
-        cookie: cookie,
-        expires: moment(expires).unix()
-      };
-      session.should.have.property('memberId');
-      session.should.have.property('email');
-      session.should.have.property('cookie');
-      session.should.have.property('expires');
+      cndToken.should.be.a.String;
+      should(cndToken).not.be.null;
       
-      api = new CNDAPI(session.cookie);
+      api = new CNDAPI(cndToken);
       api.should.be.an.Object;
 
     }).timeout(TIMEOUT_MS);
@@ -79,7 +70,7 @@ describe(fnName, () => {
     it(`should not list new reservations`, async () => {
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
@@ -126,7 +117,7 @@ describe(fnName, () => {
       // Now that single record should come out
       let request = {
         auth: {
-          ...session
+          cndToken
         },
         pathParameters: {
         },
