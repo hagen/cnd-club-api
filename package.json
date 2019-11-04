@@ -5,7 +5,9 @@
   "main": "handler.js",
   "repository": "https://git-codecommit.ap-southeast-2.amazonaws.com/v1/repos/cnd-club-api",
   "scripts": {
-    "debug-test-authorizer": "cd api\\authorizer && node --inspect-brk=9229 ..\\..\\node_modules\\serverless\\bin\\serverless invoke test"
+    "debug-test-authorizer": "cd api\\authorizer && node --inspect-brk=9229 ..\\..\\node_modules\\serverless\\bin\\serverless invoke test",
+    "deploy:authorizer": "cd api/authorizer && ../../node_modules/serverless/bin/serverless deploy --stage prod",
+    "deploy:bookings": "cd api/bookings && ../../node_modules/serverless/bin/serverless deploy --stage prod"
   },
   "author": "Hagen Dittmer",
   "license": "ISC",
