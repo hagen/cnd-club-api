@@ -37,7 +37,7 @@ const validationRules = {
       message: `must be supplied`
     },
     inclusion: {
-      within: ['reservation', 'schedule'],
+      within: ['trip', 'schedule'],
       message: `^%{value} is an invalid type.`
     }
   }
@@ -102,7 +102,7 @@ async function fetchReservations(api, {vehicle_id, start, end, type}) {
     .filter(item => item.type === type)
     // Finally, create a hash against date/time props of the reservation.
     .map(item => ({
-      id: item.reservation ? item.reservation.id : item.schedule.id,
+      id: item.trip ? item.trip.id : item.schedule.id,
       ...item,
       start_end_hash: md5(
         JSON.stringify({
